@@ -9,10 +9,10 @@ Created on Fri Jun  7 10:51:35 2019
 import re
 import os 
 import pickle
-#from googleapiclient.discovery import build
-#from google_auth_oauthlib.flow import InstalledAppFlow
-#from google.auth.transport.requests import Request
-#from SPARQLWrapper import SPARQLWrapper, JSON
+from googleapiclient.discovery import build
+from google_auth_oauthlib.flow import InstalledAppFlow
+from google.auth.transport.requests import Request
+from SPARQLWrapper import SPARQLWrapper, JSON
 import csv
 from prefixes import prefixes
 import urllib
@@ -27,49 +27,6 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 #TRUNCATED URLS are in the form [*].domain.TLD.[*]
 #an entry ISBAD if it is empty, None, NA, or TODO
 #SPREADSHEET_ID: test = test sheet, real_deal = the real sheet
-
-#deprecated
-def truncate_old(url):
-    url = url.strip()
-    stream = re.finditer('//', url)
-    try:
-        url = url[next(stream).span()[1]:]
-    except StopIteration:
-        url = url
-    www = url.find('www.')
-    if www != -1:
-        url = url[www+4:]
-    stream = re.finditer('/', url)
-    try:
-        url = url[:next(stream).span()[0]]
-    except StopIteration:
-        url = url
-    stream = re.finditer('#', url)
-    try:
-        url = url[:next(stream).span()[0]]
-    except StopIteration:
-        url = url
-    stream = re.finditer('%', url)
-    try:
-        url = url[:next(stream).span()[0]]
-    except StopIteration:
-        url = url
-    stream = re.finditer('\?', url)
-    try:
-        url = url[:next(stream).span()[0]]
-    except StopIteration:
-        url = url
-    stream = re.finditer('\&', url)
-    try:
-        url = url[:next(stream).span()[0]]
-    except StopIteration:
-        url = url        
-    try:
-        int(url.replace('.', ''))
-        return ''
-    except:
-        None
-    return url.replace('subject=', '')
     
 def truncate(url):
     url = url.replace('%2F', '/').strip()
@@ -250,16 +207,11 @@ def get_countries():
       {?item wdt:P31 wd:Q82794}.
       SERVICE wikibase:label  { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
     } """
-    
     cResults = send_query(endpoint_url, query)
-    
     cRes = cResults['results']['bindings']
-        
     codes = {}
-    
     for item in cRes:
         codes[strip_spaces(item['itemLabel']['value']).lower()] = get_id(item['item']['value'])
-            
     return codes
 
 #reads a CSV of rows and returns a list of rows
