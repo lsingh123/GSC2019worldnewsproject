@@ -14,7 +14,6 @@ import time
 import os
 os.chdir(os.path.dirname(os.getcwd()))
 
-
 class FBOGCrawler():
 
     PATH = os.getcwd() + "/data/raw"
