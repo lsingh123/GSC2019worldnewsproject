@@ -26,7 +26,7 @@ class FBOGCrawler():
         self.count = 0
 
     def read_in(self):
-        with open(self.PATH + "/all_raw_cleaned3.csv", 'r') as f:
+        with open(self.PATH + "/all_raw_cleaned.csv", 'r') as f:
             reader = csv.reader(f, delimiter=',')
             for line in reader:
                 # for testing purposes
