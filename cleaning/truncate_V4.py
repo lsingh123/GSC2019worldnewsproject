@@ -6,7 +6,6 @@ Created on Wed Jul 10 14:36:04 2019
 @author: lavanyasingh
 """
 
-
 import os
 os.chdir('/Users/lavanyasingh/Desktop/GSC2O19internet_archive/')
 import urllib.parse
@@ -150,3 +149,6 @@ class truncator():
     
     write_all_data()
         
+if __name__ == "__main__":
+    truncator = truncator()
+    truncator.write_all_data()

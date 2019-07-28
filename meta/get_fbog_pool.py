@@ -23,6 +23,7 @@ class FBOGCrawler():
         self.session = HTMLSession()
         self.read_in()
         self.processes = processes
+        self.count = 0
 
     def read_in(self):
         with open(self.PATH + "/all_raw_cleaned3.csv", 'r') as f:
@@ -54,6 +55,7 @@ class FBOGCrawler():
             return ""
 
     def get_meta(self, url):
+        self.count += 1
         try:
             response = self.session.get(url, timeout=30)
             soup = BeautifulSoup(response.html.html, features="html.parser")
@@ -61,9 +63,10 @@ class FBOGCrawler():
             title = self.get_attr(head, "title")
             desc = self.get_attr(head, "description")
             locale = self.get_locale(head)
-            return [url, title, desc, locale]
+            self.res.append([url, title, desc, locale])
         except Exception as e:
-            return [url, str(e)]
+            self.res.append([url, str(e)])
+        if self.count % 1000 == 0: print(self.count)
 
     def write_meta(self):
         with open(self.PATH + "/meta_good.csv", 'w') as outf:
@@ -76,7 +79,7 @@ class FBOGCrawler():
     def main(self):
         p = Pool(processes=self.processes)
         time1 = time.time()
-        self.res = p.map(self.get_meta, self.urls)
+        p.map(self.get_meta, self.urls)
         p.close()
         p.join()
         time2 = time.time()
@@ -84,9 +87,8 @@ class FBOGCrawler():
         self.write_meta()
         self.session.close()
 
-
 if __name__ == "__main__":
     #after testing, 9 is the optimal number of processes on lavanya-dev VM
-    crawler = FBOGCrawler(processes=9)
+    crawler = FBOGCrawler(processes=8)
     crawler.main()
     print("FINISHED RUNNING")
