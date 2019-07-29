@@ -23,14 +23,11 @@ class FBOGCrawler():
         self.session = HTMLSession()
         self.read_in()
         self.processes = processes
-        self.count = 0
 
     def read_in(self):
         with open(self.PATH + "/all_raw_cleaned.csv", 'r') as f:
             reader = csv.reader(f, delimiter=',')
             for line in reader:
-                # for testing purposes
-                #if len(self.urls) > 100: break
                 self.urls.append("http://" + "".join(line[1]))
         print("DONE READING")
 
@@ -66,7 +63,6 @@ class FBOGCrawler():
             self.res.append([url, title, desc, locale])
         except Exception as e:
             self.res.append([url, str(e)])
-        if self.count % 1000 == 0: print(self.count)
 
     def write_meta(self):
         with open(self.PATH + "/meta_good.csv", 'w') as outf:
