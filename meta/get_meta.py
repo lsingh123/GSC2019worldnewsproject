@@ -47,9 +47,12 @@ class FBOGCrawler():
     
     async def get_page(self, browser, url):
         page = await browser.newPage()
-        await page.goto(url, timeout = 100000)
-        await page.waitFor("head")
-        return await page.content()
+        try:
+            await page.goto(url, timeout = 100000)
+            await page.waitFor("head")
+            return await page.content()
+        except TimeoutError:
+            return ""
     
     async def parse_html(self, browser, url):
         try:
@@ -87,10 +90,7 @@ class FBOGCrawler():
     async def parse_all(self):
         browser = await self.get_browser()
         for url in self.urls:
-            try:
-                self.res.append(await self.parse_html(browser, url))
-            except:
-                pass
+            self.res.append(await self.parse_html(browser, url))
             print(str(len(self.res)),end="\r")
     
     def write_meta(self):
