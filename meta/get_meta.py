@@ -95,6 +95,7 @@ class FBOGCrawler():
                 self.res.append(await self.parse_html(browser, url))
                 print(str(len(self.res)),end="\r")
             except TimeoutError:
+                print(url)
                 browser = await self.get_browser()
         await browser.close()
     
