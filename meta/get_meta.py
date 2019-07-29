@@ -22,6 +22,7 @@ logging.basicConfig(filename='logfle.log',filemode = 'w')
 
 def my_handler(type, value, tb):
     logger.exception("Uncaught exception: {0}".format(str(value)))
+    raise
 
 # Install exception handler
 sys.excepthook = my_handler
