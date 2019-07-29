@@ -87,7 +87,10 @@ class FBOGCrawler():
     async def parse_all(self):
         browser = await self.get_browser()
         for url in self.urls:
-            self.res.append(await self.parse_html(browser, url))
+            try:
+                self.res.append(await self.parse_html(browser, url))
+            except:
+                pass
             print(str(len(self.res)),end="\r")
     
     def write_meta(self):
