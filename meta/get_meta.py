@@ -38,7 +38,7 @@ class FBOGCrawler():
         with open(self.PATH + "/all_raw_cleaned.csv", 'r') as f:
             reader = csv.reader(f, delimiter=',')
             for line in reader:
-                if len(self.urls) > 10: break
+                if len(self.urls) > 50: break
                 self.urls.append("http://" + "".join(line[1]))
         print("DONE READING")
     
