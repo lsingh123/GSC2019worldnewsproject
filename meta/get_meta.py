@@ -43,13 +43,15 @@ class FBOGCrawler():
         print("DONE READING")
     
     async def get_browser(self):
-        return await launch({"headless": True})
+        return await launch({"headless": True, "args": ['--nosandbox']})
     
     async def get_page(self, browser, url):
         page = await browser.newPage()
         await page.goto(url, timeout = 100000)
         await page.waitFor("head")
-        return await page.content()
+        c = await page.content()
+        await page.close()
+        return c
     
     async def parse_html(self, browser, url):
         try:
@@ -94,6 +96,7 @@ class FBOGCrawler():
                 print(str(len(self.res)),end="\r")
             except TimeoutError:
                 browser = await self.get_browser()
+        await browser.close()
     
     def write_meta(self):
         with open(self.PATH + "/meta_good2.csv", 'w') as outf:
