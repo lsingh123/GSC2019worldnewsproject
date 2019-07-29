@@ -47,12 +47,9 @@ class FBOGCrawler():
     
     async def get_page(self, browser, url):
         page = await browser.newPage()
-        try:
-            await page.goto(url, timeout = 100000)
-            await page.waitFor("head")
-            return await page.content()
-        except TimeoutError:
-            return ""
+        await page.goto(url, timeout = 100000)
+        await page.waitFor("head")
+        return await page.content()
     
     async def parse_html(self, browser, url):
         try:
@@ -63,6 +60,8 @@ class FBOGCrawler():
             desc = self.get_attr(head, "description")
             locale = self.get_locale(head)
             return [url, title, desc, locale]
+        except TimeoutError:
+            raise
         except Exception as e:
             logger.exception(traceback.format_exc())
             return [url, str(e)]
@@ -90,8 +89,11 @@ class FBOGCrawler():
     async def parse_all(self):
         browser = await self.get_browser()
         for url in self.urls:
-            self.res.append(await self.parse_html(browser, url))
-            print(str(len(self.res)),end="\r")
+            try:
+                self.res.append(await self.parse_html(browser, url))
+                print(str(len(self.res)),end="\r")
+            except TimeoutError:
+                browser = await self.get_browser()
     
     def write_meta(self):
         with open(self.PATH + "/meta_good2.csv", 'w') as outf:
