@@ -60,7 +60,7 @@ class ChromeHandler():
         if self.port == 0:
             portfile = os.path.join(self.profile_dir, 'DevToolsActivePort')
             retries = 0
-            while retries < 3:
+            while retries < 10:
                 try:
                     with open(portfile, 'r') as f:
                         # chrome writes out port number in the first line
