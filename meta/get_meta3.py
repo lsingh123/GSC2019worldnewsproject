@@ -24,6 +24,9 @@ class ChromeHandler():
         self.port = 0
         self.ph = None
         self.chrome_home = tempfile.mkdtemp(prefix='chrome-home')
+        self.profile_dir = os.path.join(self.chrome_home, 'profile')
+        if not os.path.isdir(self.profile_dir):
+            os.mkdir(self.profile_dir)
         self.__lock = threading.RLock()
     
     def start_chrome(self):
