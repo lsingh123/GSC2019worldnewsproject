@@ -72,7 +72,7 @@ class ChromeHandler():
                         portfile)
                     time.sleep(1.0)
                 retries += 1
-                
+        print(self.port)
         url= "http://127.0.0.1:{}".format(self.port)
         self.client = pychrome.Browser(url=url)
         while True:
