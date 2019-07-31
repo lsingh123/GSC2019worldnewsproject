@@ -5,20 +5,16 @@ Created on Thu Jul 18 13:41:18 2019
 
 @author: lavanyasingh
 """
-
-import pandas as pd
-import concurrent.futures
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import requests
 import time
-import os
-os.chdir(os.path.dirname(os.getcwd()))
 import csv
 
 class statusChecker():
     
     CONNECTIONS = 100
     TIMEOUT = 5
-    PATH = os.getcwd() + "/data/raw/"
+    PATH = "data/"
     
     def __init__(self, outfile):
         self.urls = self.read_in()
@@ -26,7 +22,7 @@ class statusChecker():
         self.outfile = outfile
     
     def read_in(self):
-        with open("all_raw_cleaned.csv", 'r') as f:
+        with open(self.PATH + "all_raw_cleaned1.csv", 'r') as f:
             reader = csv.reader(f, delimiter=',')
             sources = [("http://" + "".join(line[1])) for line in reader]
         print("DONE READING")
@@ -44,25 +40,23 @@ class statusChecker():
     
     def write_codes(self, codes):
         with open(self. outfile, 'w') as outf:
-            w = csv.writer(outf, delimiter= ',', quotechar = '"', quoting = csv.QUOTE_MINIMAL)
+            w = csv.writer(outf, delimiter= ',', quotechar = '"', 
+                           quoting = csv.QUOTE_MINIMAL)
             for url in codes:
                 w.writerow([url])
         print("WROTE ALL CODES")
     
-    def get_data(self):
-        with concurrent.futures.ThreadPoolExecutor(max_workers=self.CONNECTIONS) as executor:
-            future_to_url = (executor.submit(self.load_url, url, self.TIMEOUT) for url in self.urls)
+    def main(self):
+        with ThreadPoolExecutor(max_workers=self.CONNECTIONS) as executor:
+            future_to_url = (executor.submit(self.load_url, url, self.TIMEOUT) 
+                            for url in self.urls)
             time1 = time.time()
-            for future in concurrent.futures.as_completed(future_to_url):
+            for future in as_completed(future_to_url):
                 self.out.append(future.result())
                 print(str(len(self.out)),end="\r")
             time2 = time.time()
-            return time1, time2
-        
-    def main(self):
-        time1, time2 = self.get_data()
-        print(f'Took {time2-time1:.2f} s')
         self.write_codes(self.out)
+        print(f'Took {time2-time1:.2f} s')
 
 if __name__ == "__main__":
     statusChecker = statusChecker("codes.csv")

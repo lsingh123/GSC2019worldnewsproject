@@ -11,8 +11,8 @@ os.chdir(os.path.dirname(os.getcwd()))
 import helpers
 import csv
 import tldextract
-import re
 
+# read in common crawl data
 def read_cc():
     with open("data/common_crawl.txt", "r") as f:
         sources = set()
@@ -22,6 +22,7 @@ def read_cc():
     print("CC", len(sources))
     return sources
 
+# read in old data
 def read_all():
     sources = []
     with open("data/raw/all_raw_cleaned.csv", "r") as f:
@@ -31,31 +32,24 @@ def read_all():
     print(len(sources))
     return sources
 
-def clean(url):
-    url = url.replace("www.", "")
-    stream = re.finditer('%', url)
-    try:
-        url = url[:next(stream).span()[0]]
-    except StopIteration:
-        url = url
-    return url
-    
+# remove duplicates
 def remove_dups():
     domains = []
     cc_urls = read_cc()
     lines = read_all()
     old_urls = [line[1] for line in lines]
-    # make list of old host domains (without TLD's)
+    # make list of old Private Domains (without TLD)
     for item in old_urls:
-        url = clean(item)
+        url = helpers.clean(item)
         o = tldextract.extract(url)
         domain = o.subdomain + o.domain
         if domain not in domains:
             domains.append(domain)
     for item in cc_urls:
-        url = clean(item)
+        url = helpers.clean(item)
         o = tldextract.extract(url)
         domain = o.subdomain + o.domain
+        # append URL if Private Domain is unique
         if domain not in domains:
             lines.append(["", url, "", "", "", "", "", "commoncrawl",
                               "", "", "", "", ""])
@@ -69,4 +63,5 @@ def write():
         for line in lines:
             w.writerow(line)
 
-write()
+if __name__ == '__main__':
+    write()
