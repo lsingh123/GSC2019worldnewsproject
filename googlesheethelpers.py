@@ -5,6 +5,8 @@ Created on Tue Jul 30 13:58:37 2019
 
 @author: lavanyasingh
 """
+# helper functions specifically for automated access to google sheets
+# was useful at start of project when data was stored in a google sheet
 
 import pickle
 from googleapiclient.discovery import build
