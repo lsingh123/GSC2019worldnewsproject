@@ -22,7 +22,7 @@ class statusChecker():
         self.outfile = outfile
     
     def read_in(self):
-        with open(self.PATH + "all_raw_cleaned1.csv", 'r') as f:
+        with open(self.PATH + "all_raw_cleaned.csv", 'r') as f:
             reader = csv.reader(f, delimiter=',')
             sources = [("http://" + "".join(line[1])) for line in reader]
         print("DONE READING")
