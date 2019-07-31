@@ -18,6 +18,9 @@ import sys
 import traceback
 import tracemalloc
 
+# THIS SCRIPT IS BROKEN, KENJI IS WORKING ON USING HIS EXISTING HEADLESS
+# BROWSER CLUSTER TO GET FULL DOM
+
 tracemalloc.start()
 
 logger = logging.getLogger('__worldnews__')

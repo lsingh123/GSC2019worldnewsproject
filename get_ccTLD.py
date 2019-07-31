@@ -11,23 +11,18 @@ from bs4 import BeautifulSoup
 import requests
 import helpers
 import tldextract
-import os
-os.chdir(os.path.dirname(os.getcwd()))
-
-path = 'data/raw/all_raw_cleaned.csv'
 
 class countryGrabber():
     
-    q_endpoint = 'http://lavanya-dev.us.archive.org:3030/testwn/query'
-    u_endpoint = 'http://lavanya-dev.us.archive.org:3030/testwn/update'
+    ENDPOINT = 'http://lavanya-dev.us.archive.org:3030/testwn/update'
         
-    endpoint_url = u_endpoint
-
-    def __init__(self, path):
+    def __init__(self, inf="data/all_raw_cleaned.csv", outf):
+        self.path = path
         self.countries = self.get_cc()
-        self.path = os.getcwd() + path
         self.country_ids = helpers.get_countries()
-        
+    
+    # scrape CCTLDs from the ICANN Wiki
+    # returns a dict in {code:country name} format
     def get_cc(self):
         page = 'https://icannwiki.org/Country_code_top-level_domain'
         countries = {}
@@ -39,7 +34,8 @@ class countryGrabber():
             country = row.find_all('td')[1].contents[0]
             countries[code] = country
         return countries
-        
+    
+    # extract CCTLD from url
     def find_cc(self, url):
         tld = tldextract.extract(url)[2]
         if tld.find('.') != -1:
@@ -48,8 +44,9 @@ class countryGrabber():
             return self.countries[tld]
         return None
     
+    # assign each source a country based on CCTLD
     def assign_cc(self):
-        sources = helpers.read_in(self.path)
+        sources = helpers.read_in(self.infile)
         for source in sources:
             country = self.find_cc(source[1])
             if country != None: 
@@ -58,12 +55,17 @@ class countryGrabber():
     
     def write_cc(self):
         sources = self.assign_cc()
-        with open(path, "w", errors = "ignore") as f:
-            w = csv.writer(f, delimiter= ',', quotechar = '"', quoting = csv.QUOTE_MINIMAL)
-            w.writerow(['country', 'source url', 'title', 'language', 'type', 'title native language',
-                        'paywall', 'metasource', 'state', 'town', 'wikipedia name', 'redirects?',
+        with open(self.outfile, "w", errors = "ignore") as f:
+            w = csv.writer(f, delimiter= ',', quotechar = '"', 
+                           quoting = csv.QUOTE_MINIMAL)
+            w.writerow(['country', 'source url', 'title', 'language', 'type', 
+                        'title native language', 'paywall', 'metasource', 
+                        'state', 'town', 'wikipedia name', 'redirects?',
                         'wikipedia link'])
             for item in sources:
                 w.writerow(item)        
 
+if __name__ == '__main__':
+    grabber = countryGrabber()
+    grabber.write_cc()
 

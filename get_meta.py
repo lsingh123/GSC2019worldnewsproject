@@ -15,7 +15,9 @@ from pyppeteer import launch
 import asyncio
 import logging
 import sys
-import traceback
+
+# THIS SCRIPT IS BROKEN, KENJI IS WORKING ON USING HIS EXISTING HEADLESS
+# BROWSER CLUSTER TO GET FULL DOM
 
 logger = logging.getLogger('__worldnews__')
 logging.basicConfig(filename='logfle.log',filemode = 'w')

@@ -6,18 +6,22 @@ Created on Tue Jul  9 11:27:48 2019
 @author: lavanyasingh
 """
 
-import os
-os.chdir(os.path.dirname(os.getcwd()))
 import csv
+
+# I used this script to consolidate the sources into one CSV file from all the 
+# little ones I had. Those CSVs are no longer in this directory, as they have 
+# already been consolidated. I'm leaving this script in for reference.
 
 class consolidator():
     
-    def __init__(self, outfile = 'data/raw/all_raw.csv'):
+    def __init__(self, outfile = 'data/all_raw.csv'):
         self.outfile = outfile
         
+    # get metasource from path name
     def get_meta(self, path):
         return path.split('.')[0].replace('data/', '')
     
+    # the US news data was structured differently from the rest of it 
     def us_news(self):
         with open('data/us_news.csv', 'r') as inf:
             reader = csv.reader(inf, delimiter=',')
@@ -30,7 +34,33 @@ class consolidator():
                                 line[3], line[1], '', 'original', line[0], '', 
                                 '', '', ''])
     
-    #reads in data that has been csv formatted
+    # USNPL data was also structured differently
+    def usnpl(self):
+        with open('data/usnpl_wiki_list.csv', 'r') as inf:
+            reader = csv.reader(inf, delimiter=',')
+            next(reader)
+            with open(self.outfile, 'a+') as outf:
+                w = csv.writer(outf, delimiter= ',', quotechar = '"', quoting = 
+                               csv.QUOTE_MINIMAL)
+                for line in reader:
+                    w.writerow(['United States', line[3], line[2], 'English', 
+                                'Newspaper', line[2],'', 'usnpl', line[0], 
+                                line[1], line[4], line[6], line[7]])
+
+    # LION data was also structured differently
+    def lion(self):
+        with open('data/lion.csv', 'r') as inf:
+            reader = csv.reader(inf, delimiter=',')
+            next(reader)
+            with open(self.outfile, 'a+') as outf:
+                w = csv.writer(outf, delimiter= ',', quotechar = '"', quoting = 
+                               csv.QUOTE_MINIMAL)
+                for line in reader:
+                    w.writerow(['United States', line[1], line[0], 'English', 
+                                '', line[0], '', 'lion', line[5], line[4], '', 
+                                '', ''])
+
+    # reads in data that has been csv formatted (that I've cleaned before)
     def formatted(self, path):
         with open(path, 'r') as inf:
             reader = csv.reader(inf, delimiter=',')
@@ -43,19 +73,7 @@ class consolidator():
                     row[7] = self.get_meta(path) 
                     w.writerow(row)
         print("DONE WITH ", path)
-            
-    def usnpl(self):
-        with open('data/usnpl_wiki_list.csv', 'r') as inf:
-            reader = csv.reader(inf, delimiter=',')
-            next(reader)
-            with open(self.outfile, 'a+') as outf:
-                w = csv.writer(outf, delimiter= ',', quotechar = '"', quoting = 
-                               csv.QUOTE_MINIMAL)
-                for line in reader:
-                    w.writerow(['United States', line[3], line[2], 'English', 
-                                'Newspaper', line[2],'', 'usnpl', line[0], 
-                                line[1], line[4], line[6], line[7]])
-    
+
     # reads in data from a text file of URLS
     def txt(self, path):
         with open(path, 'r') as inf:
@@ -67,18 +85,6 @@ class consolidator():
                     row[7] = self.get_meta(path)
                     w.writerow(row)
         print ("DONE WITH ", path)
-    
-    def lion(self):
-        with open('data/lion.csv', 'r') as inf:
-            reader = csv.reader(inf, delimiter=',')
-            next(reader)
-            with open(self.outfile, 'a+') as outf:
-                w = csv.writer(outf, delimiter= ',', quotechar = '"', quoting = 
-                               csv.QUOTE_MINIMAL)
-                for line in reader:
-                    w.writerow(['United States', line[1], line[0], 'English', 
-                                '', line[0], '', 'lion', line[5], line[4], '', 
-                                '', ''])
     
     def main(self):
         self.us_news()
