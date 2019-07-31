@@ -59,7 +59,7 @@ class statusChecker():
         print(f'Took {time2-time1:.2f} s')
 
 if __name__ == "__main__":
-    statusChecker = statusChecker("codes.csv")
+    statusChecker = statusChecker("codes1.csv")
     statusChecker.main()
 
 
