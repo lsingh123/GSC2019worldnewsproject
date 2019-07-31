@@ -43,7 +43,7 @@ class statusChecker():
             w = csv.writer(outf, delimiter= ',', quotechar = '"', 
                            quoting = csv.QUOTE_MINIMAL)
             for url in codes:
-                w.writerow([url])
+                w.writerow([list(url)])
         print("WROTE ALL CODES")
     
     def main(self):
@@ -59,7 +59,7 @@ class statusChecker():
         print(f'Took {time2-time1:.2f} s')
 
 if __name__ == "__main__":
-    statusChecker = statusChecker("codes1.csv")
+    statusChecker = statusChecker("data/codes1.csv")
     statusChecker.main()
 
 
