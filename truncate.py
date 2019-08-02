@@ -10,94 +10,88 @@ import os
 os.chdir('/Users/lavanyasingh/Desktop/GSC2O19internet_archive/')
 import urllib.parse
 import csv
-import re
-import json
 import helpers
 
 class truncator():
     
-    def clean_meta(meta):
+    # cleans metasource name
+    def clean_meta(selfm, meta):
         return meta.lower().replace(" ", "").strip()
     
-    def clean_url(url):
+    def clean_url(self, url):
         url_raw = helpers.truncate(url)
         o = urllib.parse.urlparse('http://www.' + url_raw)
         return o.netloc
     
-    def prep_url(url):
-        url = url.replace("http://", "").replace("https://", "").replace("www.", "")
+    # strip schema and www. from a given URL
+    def prep_url(self, url):
+        url = (url.replace("http://", "").replace("https://", "")
+        .replace("www.", ""))
         return "http://www." + url
     
-    def url_is_good(url):
-        return (url != "url" and url != "" and url != "www." and url != 'www.source url'
-                and url != 'www.www.source url')
+    def url_is_good(self, url):
+        # garbage URLs as determined by spotchecking
+        return (url != "url" and url != "" and url != "www." and 
+                url != 'www.source url' and url != 'www.www.source url')
     
-    def path_is_good(path):
-        if (path.find('/robots.txt') != -1 or path.find('html') != -1 or path.find('/css') != -1 
-            or path.find('/js') != -1 or path.find('/favicon.ico') != -1 or path.find('/img') != -1 or
-            path == '/' or path == "" or path == "/\n" or path.find('.json') != -1 
-            or path.find('.js') != -1 or path.find(".png") != -1 or path.find(".jpg") != -1):
+    def path_is_good(self, path):
+        # we want to exclude generic paths
+        bad = ['/robots.txt', 'html', '/css', '/js', '/favicon.ico', '/img', 
+               '.json', '.js', ".png", ".jpg"]
+        for el in bad:
+            if path.find(el) != -1: return False
+            
+        # we want to exclude empty paths
+        if (path == '/' or path == "" or path == "/\n"):
             return False
+        
+        # we want to exclude long paths
         if len(path.split("/")) > 3: 
             return False
+        
+        # we want to exclude paths that are purely numerical
         try:
             int(path.strip().replace("/", ""))
             return False
         except:
             return True
     
-    pref = '/Users/lavanyasingh/Desktop/GSC2O19internet_archive/data/raw'
-    paths = os.listdir(pref)
-    paths.remove(".DS_Store")
-    
-    #returns a dict 
-    def make_path_dict():
-        total, uq = 0, 0
+    # returns a dict of url: paths when given a list of filepaths
+    # example return value: {'cnn': '/money', '/business', '/politics'}
+    def make_path_dict(self, fpaths):
         sources = {}
-        for path in paths:
-            print(path)
-            with open('data/raw/' + path, 'r') as inf:
+        for fpath in fpaths:
+            with open('data/raw/' + fpath, 'r') as inf:
                 reader = csv.reader(inf, delimiter=',')
                 for line in reader:
-                    total += 1
                     line = ''.join(line[1])
-                    url = clean_url(line)
-                    if url_is_good(url):
-                        o = urllib.parse.urlparse(prep_url(line))
-                        path = o.path
-                        if url not in sources:
-                            uq += 1
-                            sources.update({url:[]})
-                        if path not in sources[url] and path_is_good(path):
-                            sources[url].append(path)
-                        if total % 10000 == 0 and len(sources[url]) < 15: 
-                            print(total, line, url, sources[url])
-            print("TOTAL", total)
-            print("UNIQUE", uq)
+                    url = self.clean_url(line)
+                    
+                    # ignore bad URLs
+                    if not self.url_is_good(url):
+                        pass
+
+                    o = urllib.parse.urlparse(self.prep_url(line))
+                    path = o.path
+                    
+                    # add unique URLs
+                    if url not in sources:
+                        sources.update({url:[]})
+                    
+                    # if we've seen this URL before, add path
+                    elif (path not in sources[url] and 
+                          self.path_is_good(path)):
+                        sources[url].append(path)
         return sources
-    
-    #sources = make_path_dict()
-    
-    def test():
-        with open('data/raw/all_Raw.csv', 'r') as inf:
-            reader = csv.reader(inf, delimiter=',')
-            total = 0
-            for line in reader:
-                total += 1
-                if total % 10000 == 0:
-                    print(line[1], clean_url(line[1]))
-    
+        
     #outputs a dict of url: CSV rows
-    def make_all_data():
-        total, uq = 0, 0
+    def make_all_data(self, fpaths):
         rows = {}
-        for path in paths:
-            print(path)
-            with open('data/raw/' + path, 'r') as inf:
+        for fpath in fpaths:
+            with open('data/raw/' + fpath, 'r') as inf:
                 reader = csv.reader(inf, delimiter=',')
                 for line in reader:
-                    total += 1
-                    url = clean_url(line[1])
+                    url = self.clean_url(line[1])
                     line[1] = url
                     metasource = clean_meta(line[7])
                     row = line
@@ -127,9 +121,7 @@ class truncator():
                         print(url, rows[url])
             print("DONE", path, total, uq)
         return rows
-                            
-    rows = make_all_data()  
-       
+                                   
     def write_all_data():
         total = 0
         with open('data/raw/all_raw_cleaned.csv', 'w') as outf:

@@ -28,19 +28,25 @@ class MetadataParser():
     
     # read in cleaned URLs from CSV
     def read_in(self):
+        count = 0
         with open(self.infile, 'r') as f:
             reader = csv.reader(f, delimiter=',')
             for line in reader:
-                #if len(self.urls) > 100: break
-                self.urls.append("http://" + "".join(line[1]))
+                count += 1
+                if count > 50000:
+                    self.urls.append("http://" + "".join(line[1]))
         print("DONE READING")
     
     # load the HTML tree for a given URL
     def load_tree(self, url):
-        url = parse.quote(url)
-        r = self.session.get("http://crawl-services.us.archive.org:8200/web?url={url}&format=html".format(url=url))
-        html = r.html.html
-        return etree.parse(StringIO(html), self.parser)
+        try:
+            url = parse.quote(url)
+            r = self.session.get("http://crawl-services.us.archive.org:8200/web?url={url}&format=html".format(url=url))
+            html = r.html.html
+            return etree.parse(StringIO(html), self.parser)
+        except Exception as e:
+            print(e, url)
+            raise
     
     # get open graph data for a given attribute (title, locale, description)
     def get_og(self, tree, attribute):
@@ -91,9 +97,9 @@ class MetadataParser():
         except Exception as e:
             print(e)
             print(url)
+            raise
             return [url]
             
-    
     def write_meta(self, results):
         with open(self.outfile, 'w') as outf:
             w = csv.writer(outf, delimiter=',', quotechar='"',
