@@ -32,7 +32,8 @@ def verify(processes):
     res = crawler.main()
     count = 0
     for url in res:
-        if url[1] == "b'upstream request timeout'":
+        print(url[1])
+        if url[1].replace('b', "").find('upstream request timeout') != -1:
             count += 1
     return count
 
