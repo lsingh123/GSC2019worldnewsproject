@@ -6,11 +6,12 @@ Created on Fri Aug  2 15:49:40 2019
 @author: lavanyasingh
 """
 
-# script to determine optimanl number of workers for get_meta.py
+# script to determine optimal number of workers for get_meta.py
 
-from get_meta3 import MetadataParser
+from meta_scrape import MetadataParser
 import timeit
 import matplotlib.pyplot as plt
+
 
 def run_script(processes):
     crawler = MetadataParser(processes)
@@ -27,9 +28,8 @@ def time(max_processes):
     plt.show()
 
 def verify(processes):
-    crawler = MetadataParser(processes)
+    crawler = MetadataParser(processes=processes)
     res = crawler.main()
-    print("hi")
     count = 0
     for url in res:
         if url[1] == "b'upstream request timeout'":

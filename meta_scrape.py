@@ -37,7 +37,7 @@ class MetadataParser():
             reader = csv.reader(f, delimiter=',')
             for line in reader:
                 #for testing purposes
-                if len(self.urls) > 10: break
+                if len(self.urls) > 16: break
                 self.urls.append("http://" + "".join(line[1]))
         print("DONE READING")
 
@@ -127,7 +127,7 @@ class MetadataParser():
         self.session.close()
         return results
 
-'''if __name__ == '__main__':
-    parser = MetadataParser()
-    parser.main()'''
+if __name__ == '__main__':
+    parser = MetadataParser(processes=8)
+    parser.main()
         
