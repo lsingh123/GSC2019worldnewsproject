@@ -7,15 +7,17 @@ Created on Wed Jul 10 14:36:04 2019
 """
 
 import os
-os.chdir('/Users/lavanyasingh/Desktop/GSC2O19internet_archive/')
 import urllib.parse
 import csv
 import helpers
 
-class truncator():
+class Truncator():
     
-    # cleans metasource name
+    def __init__(self, outfile):
+        self.outfile = outfile
+    
     def clean_meta(selfm, meta):
+        # cleans metasource name
         return meta.lower().replace(" ", "").strip()
     
     def clean_url(self, url):
@@ -23,8 +25,8 @@ class truncator():
         o = urllib.parse.urlparse('http://www.' + url_raw)
         return o.netloc
     
-    # strip schema and www. from a given URL
     def prep_url(self, url):
+        # strip schema and www. from a given URL
         url = (url.replace("http://", "").replace("https://", "")
         .replace("www.", ""))
         return "http://www." + url
@@ -55,34 +57,6 @@ class truncator():
             return False
         except:
             return True
-    
-    # returns a dict of url: paths when given a list of filepaths
-    # example return value: {'cnn': '/money', '/business', '/politics'}
-    def make_path_dict(self, fpaths):
-        sources = {}
-        for fpath in fpaths:
-            with open('data/raw/' + fpath, 'r') as inf:
-                reader = csv.reader(inf, delimiter=',')
-                for line in reader:
-                    line = ''.join(line[1])
-                    url = self.clean_url(line)
-                    
-                    # ignore bad URLs
-                    if not self.url_is_good(url):
-                        pass
-
-                    o = urllib.parse.urlparse(self.prep_url(line))
-                    path = o.path
-                    
-                    # add unique URLs
-                    if url not in sources:
-                        sources.update({url:[]})
-                    
-                    # if we've seen this URL before, add path
-                    elif (path not in sources[url] and 
-                          self.path_is_good(path)):
-                        sources[url].append(path)
-        return sources
         
     #outputs a dict of url: CSV rows
     def make_all_data(self, fpaths):
@@ -91,43 +65,59 @@ class truncator():
             with open('data/raw/' + fpath, 'r') as inf:
                 reader = csv.reader(inf, delimiter=',')
                 for line in reader:
+                    
+                    # clean URL
                     url = self.clean_url(line[1])
                     line[1] = url
-                    metasource = clean_meta(line[7])
-                    row = line
-                    if (row[0] == "United States" or row[0].lower() == "us" or 
-                        row[0].lower() == "usa") : 
-                        row[0] == "United States of America"
-                    row[7] = [metasource]
-                    row = [row[i] for i in range(12)] + ['', '']
+                    
+                    # get path ('/money' or '/index' for example)
+                    o = urllib.parse.urlparse(self.prep_url(line))
+                    path = o.path
+                    
+                    # add metasource
+                    metasource = self.clean_meta(line[7])
+                    line[7] = [metasource]
+
+                    
+                    # check for various spellings of USA
+                    if (line[0] == "United States" or line[0].lower() == "us" 
+                        or line[0].lower() == "usa") : 
+                        line[0] == "United States of America"
+                    
+                    # extend row
+                    line += ['', '']
+                    
+                    # if unique url, add path
                     if url not in rows:
-                        if url_is_good(url):
-                            uq += 1
-                            if len(sources[url]) < 10:
-                                row[13] = sources[url]
-                            else:
-                                row[13] = []
-                            rows.update({url: row})
+                        if self.url_is_good(url):
+                            if self.path_is_good(path):
+                                line[13] = [path]
+                            rows.update({url: line})
                     else:
-                        rows[url][7].append(metasource) if metasource not in rows[url][7] else rows[url][7]
+                        # add metasource if necessary
+                        if metasource not in rows[url][7]:
+                            rows[url][7].append(metasource)
+                        
+                        # update any broken metadata to new value
                         for i in range(len(rows[url]) - 1):
                             if helpers.is_bad(rows[url][i]):
                                 try:
-                                    rows[url][i] = row[i] 
+                                    rows[url][i] = line[i] 
                                 except:
-                                    print(row, i)
-                                    return "OOPS"
-                    if total % 10000 == 0 and url_is_good(url): 
-                        print(url, rows[url])
-            print("DONE", path, total, uq)
+                                    pass
+                        
+                        # add path if good
+                        if self.path_is_good(path):
+                            rows[url][13].append(path)
+                            
+            print("DONE WITH", path)
         return rows
                                    
-    def write_all_data():
-        total = 0
-        with open('data/raw/all_raw_cleaned.csv', 'w') as outf:
-            w = csv.writer(outf, delimiter= ',', quotechar = '"', quoting = csv.QUOTE_MINIMAL)
+    def write_all_data(self, rows):
+        with open(self.outfile, 'w') as outf:
+            w = csv.writer(outf, delimiter= ',', quotechar = '"', 
+                           quoting = csv.QUOTE_MINIMAL)
             for row in rows.values():
-                total += 1
                 metasources = ""
                 for item in row[7]: 
                     metasources += item + " "
@@ -137,10 +127,11 @@ class truncator():
                 row[7] = metasources
                 row[13] = paths
                 w.writerow(row)
-        print("DONE", total)
+        print("DONE WRITING")
     
-    write_all_data()
         
 if __name__ == "__main__":
-    truncator = truncator()
-    truncator.write_all_data()
+    truncator = Truncator(outfile)
+    fpaths = os.listdir('data/')
+    rows = truncator.make_all_data(fpaths)
+    truncator.write_all_data(rows)

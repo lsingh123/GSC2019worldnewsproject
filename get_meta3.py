@@ -6,25 +6,30 @@ Created on Thu Aug  1 10:19:18 2019
 @author: lavanyasingh
 """
 
-from requests_html import HTMLSession
+from requests import Session
 from lxml import etree
 from urllib import parse
 import concurrent.futures
 import csv
 import time
 from bs4 import UnicodeDammit
+from urllib3.util.retry import Retry
+from requests.adapters import HTTPAdapter
 
 # Scrape metadata from Kenji's service that returns rendered HTML
 
 class MetadataParser():
     
     def __init__(self, infile = "data/all_raw_cleaned.csv", 
-                 outfile = "data/metadata.csv"):
+                 outfile = "data/metadata.csv", processes = 16):
         self.infile, self.outfile = infile, outfile
-        self.session = HTMLSession()
+        self.session = Session()
+        retries = Retry(total=0)
+        self.session.mount('http://', HTTPAdapter(max_retries=retries))
         self.parser = etree.HTMLParser()
         self.urls = []
         self.read_in()
+        self.processes = processes
 
     # read in cleaned URLs from CSV
     def read_in(self):
@@ -32,7 +37,7 @@ class MetadataParser():
             reader = csv.reader(f, delimiter=',')
             for line in reader:
                 #for testing purposes
-                if len(self.urls) > 25: break
+                if len(self.urls) > 10: break
                 self.urls.append("http://" + "".join(line[1]))
         print("DONE READING")
 
@@ -40,8 +45,8 @@ class MetadataParser():
     def load_url(self, url):
         url = parse.quote(url)
         r = self.session.get("http://crawl-services.us.archive.org:8200/web?url={url}&format=html".format(url=url), 
-                             timeout = 50)
-        html = r.html.html
+                             timeout = 300)
+        html = r.text
         doc = UnicodeDammit(html, is_html=True)
         if not doc.unicode_markup:
             print ("Failed to detect encoding for {url}".format(url=url))
@@ -85,7 +90,7 @@ class MetadataParser():
         return desc
 
     # scrape and parse a given URL
-    def parse_url(self, url):
+    def _parse_url(self, url):
         html = self.load_url(url)
         tree = etree.fromstring(html, self.parser)
         title = self.get_title(tree)
@@ -96,6 +101,12 @@ class MetadataParser():
             return [url, html]
         # replace none values with the empty string
         return ["" if res is None else res for res in results]
+    
+    def parse_url(self, url):
+        try:
+            return self._parse_url(url)
+        except Exception as e:
+            return [url, str(e)]
             
     def write_meta(self, results):
         with open(self.outfile, 'w') as outf:
@@ -108,23 +119,15 @@ class MetadataParser():
     def main(self):
         time1 = time.time()
         results = []
-        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
-            future_to_url = {executor.submit(self.parse_url, url): url for url in self.urls}
-            for future in concurrent.futures.as_completed(future_to_url):
-                url = future_to_url[future]
-                try:
-                    data = future.result()
-                except Exception as exc:
-                    print('%r generated an exception: %s' % (url, exc))
-                    data = [url, exc]
-                finally:
-                    results.append(data)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=self.processes) as executor:
+            results = executor.map(self.parse_url, self.urls)
         time2 = time.time()
-        self.write_meta(results)
+        #self.write_meta(results)
         print(f"Took {time2-time1:.2f} seconds")
         self.session.close()
+        return results
 
-if __name__ == '__main__':
+'''if __name__ == '__main__':
     parser = MetadataParser()
-    parser.main()
+    parser.main()'''
         
