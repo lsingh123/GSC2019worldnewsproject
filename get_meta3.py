@@ -8,7 +8,6 @@ Created on Thu Aug  1 10:19:18 2019
 
 from requests_html import HTMLSession
 from lxml import etree
-from io import StringIO
 from urllib import parse
 import concurrent.futures
 import csv
@@ -32,20 +31,22 @@ class MetadataParser():
         with open(self.infile, 'r') as f:
             reader = csv.reader(f, delimiter=',')
             for line in reader:
-                if len(self.urls) > 5000: break
+                #for testing purposes
+                if len(self.urls) > 25: break
                 self.urls.append("http://" + "".join(line[1]))
         print("DONE READING")
 
-    # load the HTML tree for a given URL
-    def load_tree(self, url):
+    # load the HTML for a given URL
+    def load_url(self, url):
         url = parse.quote(url)
-        r = self.session.get("http://crawl-services.us.archive.org:8200/web?url={url}&format=html".format(url=url))
+        r = self.session.get("http://crawl-services.us.archive.org:8200/web?url={url}&format=html".format(url=url), 
+                             timeout = 50)
         html = r.html.html
         doc = UnicodeDammit(html, is_html=True)
         if not doc.unicode_markup:
             print ("Failed to detect encoding for {url}".format(url=url))
         webfile = doc.unicode_markup.encode('utf-8')
-        return etree.fromstring(webfile, self.parser)
+        return webfile
 
     # get open graph data for a given attribute (title, locale, description)
     def get_og(self, tree, attribute):
@@ -85,11 +86,14 @@ class MetadataParser():
 
     # scrape and parse a given URL
     def parse_url(self, url):
-        tree = self.load_tree(url)
+        html = self.load_url(url)
+        tree = etree.fromstring(html, self.parser)
         title = self.get_title(tree)
         desc = self.get_description(tree)
         locale = self.get_og(tree, "locale")
         results = [url, title, desc, locale]
+        if title is None and desc is None and locale is None: 
+            return [url, html]
         # replace none values with the empty string
         return ["" if res is None else res for res in results]
             
@@ -104,7 +108,7 @@ class MetadataParser():
     def main(self):
         time1 = time.time()
         results = []
-        with concurrent.futures.ThreadPoolExecutor(max_workers=16) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
             future_to_url = {executor.submit(self.parse_url, url): url for url in self.urls}
             for future in concurrent.futures.as_completed(future_to_url):
                 url = future_to_url[future]
@@ -115,9 +119,6 @@ class MetadataParser():
                     data = [url, exc]
                 finally:
                     results.append(data)
-                    r = len(results)
-                    if r % 500 == 0:
-                        print(url, r)  
         time2 = time.time()
         self.write_meta(results)
         print(f"Took {time2-time1:.2f} seconds")
