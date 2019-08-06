@@ -11,8 +11,6 @@ Created on Mon Jun  3 11:16:15 2019
 import requests
 from bs4 import BeautifulSoup
 import csv
-import os
-os.chdir(os.path.dirname(os.getcwd()) + "/data")
 
 def get_sources():
     page = 'http://www.inkdrop.net/news/'
@@ -33,7 +31,7 @@ def get_sources():
 
 def write_sources():
     sources = get_sources()
-    with open('inkdrop_sources.csv', mode = 'w') as f:
+    with open('data/inkdrop_sources.csv', mode = 'w') as f:
         w = csv.writer(f, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         w.writerow(['country', 'source url', 'title', 'language', 'type'])
         for source in sources:

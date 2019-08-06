@@ -128,6 +128,7 @@ class MetadataParser():
         return results
 
 if __name__ == '__main__':
+    # optimal number of processes based on results from `meta_test.py`
     parser = MetadataParser(processes=15)
     parser.main()
         

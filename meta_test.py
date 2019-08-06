@@ -12,7 +12,6 @@ from meta_scrape import MetadataParser
 import timeit
 import matplotlib.pyplot as plt
 
-
 def run_script(processes):
     crawler = MetadataParser(processes)
     time = timeit.timeit(crawler.main, number = 1)

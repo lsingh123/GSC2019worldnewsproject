@@ -6,8 +6,6 @@ Created on Tue Jul 30 11:20:23 2019
 @author: lavanyasingh
 """
 
-import os
-os.chdir(os.path.dirname(os.getcwd()))
 import helpers
 import csv
 import tldextract
