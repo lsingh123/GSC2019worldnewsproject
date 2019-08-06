@@ -1,6 +1,8 @@
 # worldnews
 
 Code developed for the World News Project during Google Summer of Code 2019.
+*Note: This repository contains operationalized code to be used as a long term
+resource. For old/exploratory scripts, please see: https://github.com/lsingh123/GSC2019internet_archive*
 
 ## Helpers
 
@@ -39,4 +41,4 @@ see: https://docs.google.com/document/d/1rY32moyAVndtINysWYF5c5rhRtSX6OyTH5rkGc6
 ## Metadata
 
 Scripts starting with `meta` are used for metadata collection and processing
-after the fact. 
+after the fact.

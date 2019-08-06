@@ -149,7 +149,8 @@ class graphGenerator():
         if not helpers.is_bad(source[12]):
             match = "{" + graph + "{ ?item wnp:wikipedia-page ?wp_page}}"
             q += ("DELETE" + match + """
-              INSERT { """ + graph + " {" + url_item + " wnp:wikipedia-page \'" + helpers.clean(source[12]) + """\' }} 
+              INSERT { """ + graph + " {" + url_item + " wnp:wikipedia-page \'" 
+                                        + helpers.clean(source[12]) + """\' }} 
               WHERE """ + match + ";" )
         if source[1] == 'timesofsandiego.com': print(q)
         return q

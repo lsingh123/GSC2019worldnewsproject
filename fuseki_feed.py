@@ -11,17 +11,18 @@ import helpers
 import csv
 from graph_spec import graphGenerator
         
+
 class Feeder:
-    
+
     ENDPOINT = 'http://lavanya-dev.us.archive.org:3030/testwn/update'
-    
-    # graph spec_maker should be a function that return a graph spec
+
+    # graph spec_maker should be a function that returns a graph spec
     # from the graphGenerator class defined in graph_spec.py
     def __init__(self, graph_spec_maker, infile):
         self.write_metasources()
         self.get_graph_spec = graph_spec_maker
         self.infile = infile
-        
+
     def write_metasources(self):
         query = prefixes + """
         INSERT DATA {
@@ -48,7 +49,7 @@ class Feeder:
         } """
         helpers.send_query(self.ENDPOINT, query)
         print('successfully wrote meta sources')
-    
+
     #takes in a list of CSV rows
     def dump_all(self, sources):
         counter = 0
@@ -72,7 +73,7 @@ class Feeder:
                         print("BAD QUERY")
                     break
         print("DONE")
-    
+
     def read_in(self):
         sources = []
         with open(self.infile, 'r') as f:
@@ -84,6 +85,7 @@ class Feeder:
                 print(str(len(sources)) + "\r")
         print("DONE")
         return sources
+
 
 if __name__ == '__main__':
     generator = graphGenerator()
