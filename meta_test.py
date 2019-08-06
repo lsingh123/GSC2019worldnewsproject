@@ -33,7 +33,7 @@ def verify(processes):
     count = 0
     for url in res:
         print(url[1])
-        if url[1].replace('b', "").find('upstream request timeout') != -1:
+        if str(url[1]).find('upstream request timeout') != -1:
             count += 1
     return count
 

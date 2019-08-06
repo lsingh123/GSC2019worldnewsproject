@@ -128,6 +128,6 @@ class MetadataParser():
         return results
 
 if __name__ == '__main__':
-    parser = MetadataParser(processes=8)
+    parser = MetadataParser(processes=15)
     parser.main()
         
