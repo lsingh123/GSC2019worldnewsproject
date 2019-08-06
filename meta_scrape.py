@@ -37,7 +37,7 @@ class MetadataParser():
             reader = csv.reader(f, delimiter=',')
             for line in reader:
                 #for testing purposes
-                if len(self.urls) > 16: break
+                if len(self.urls) > 500: break
                 self.urls.append("http://" + "".join(line[1]))
         print("DONE READING")
 
@@ -122,7 +122,7 @@ class MetadataParser():
         with concurrent.futures.ThreadPoolExecutor(max_workers=self.processes) as executor:
             results = executor.map(self.parse_url, self.urls)
         time2 = time.time()
-        #self.write_meta(results)
+        self.write_meta(results)
         print(f"Took {time2-time1:.2f} seconds")
         self.session.close()
         return results
