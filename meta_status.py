@@ -9,20 +9,21 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 import requests
 import time
 import csv
+import argparse
 
 class statusChecker():
     
     CONNECTIONS = 100
-    TIMEOUT = 5
-    PATH = "data/"
+    TIMEOUT = 50
     
-    def __init__(self, outfile):
-        self.urls = self.read_in()
+    def __init__(self, infile='data/all_raw_cleaned.csv', 
+                 outfile='data/codes2.csv'):
         self.out = []
-        self.outfile = outfile
+        self.outfile, self.infile = outfile, infile
+        self.urls = self.read_in()
     
     def read_in(self):
-        with open(self.PATH + "all_raw_cleaned.csv", 'r') as f:
+        with open(self.infile, 'r') as f:
             reader = csv.reader(f, delimiter=',')
             sources = [("http://" + "".join(line[1])) for line in reader]
         print("DONE READING")
@@ -43,7 +44,7 @@ class statusChecker():
             w = csv.writer(outf, delimiter= ',', quotechar = '"', 
                            quoting = csv.QUOTE_MINIMAL)
             for url in codes:
-                w.writerow([list(url)])
+                w.writerow(list(url))
         print("WROTE ALL CODES")
     
     def main(self):
@@ -58,8 +59,22 @@ class statusChecker():
         self.write_codes(self.out)
         print(f'Took {time2-time1:.2f} s')
 
+# create argument parser
+def create_parser():
+    argp = argparse.ArgumentParser(
+            description='check status codes')
+    argp.add_argument('-inf', '--infile', nargs='?',
+                      default='data/all_raw_cleaned.csv', type=str,
+                      help='csv file to read URLs in from')
+    argp.add_argument('-outf', '--outfile', nargs='?',
+                      default='data/codes2.csv', type=str,
+                      help='csv file to write codes to')
+    return argp
+
 if __name__ == "__main__":
-    statusChecker = statusChecker("data/codes1.csv")
+    argp = create_parser()
+    args = argp.parse_args()
+    statusChecker = statusChecker(infile=args.infile, outfile=args.outfile)
     statusChecker.main()
 
 
