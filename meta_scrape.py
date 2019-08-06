@@ -16,6 +16,7 @@ from bs4 import UnicodeDammit
 from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
 import argparse
+from requests import exceptions
 
 # Scrape metadata from Kenji's service that returns rendered HTML
 
@@ -54,11 +55,8 @@ class MetadataParser():
     # load the HTML for a given URL
     def _load_url(self, url):
         url = parse.quote(url)
-        try:
-            r = self.session.get("http://crawl-services.us.archive.org:8200/web?url={url}&format=html".format(url=url),
+        r = self.session.get("http://crawl-services.us.archive.org:8200/web?url={url}&format=html".format(url=url),
                                  timeout=300)
-        except TimeoutError as e:
-            return str(e)
         html = r.text
         doc = UnicodeDammit(html, is_html=True)
         if not doc.unicode_markup:
@@ -67,14 +65,17 @@ class MetadataParser():
         return webfile
 
     def load_url(self, url):
-        webfile = self._load_url(url)
-        for i in range(self.retries):
-            if str(webfile).find("b'upstream request timeout'") != -1:
-                print('retrying: {url}'.format(url=url))
-                webfile = self._load_url(url)
-            else:
-                break
-        return webfile
+        try:
+            webfile = self._load_url(url)
+            for i in range(self.retries):
+                if str(webfile).find("b'upstream request timeout'") != -1:
+                    print('retrying: {url}'.format(url=url))
+                    webfile = self._load_url(url)
+                else:
+                    break
+            return webfile
+        except exceptions.ConnectionError as e:
+            return str(e)
 
     # get open graph data for a given attribute (title, locale, description)
     def get_og(self, tree, attribute):
