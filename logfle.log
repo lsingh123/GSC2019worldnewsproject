@@ -1,0 +1,16 @@
+ERROR:__worldnews__:Traceback (most recent call last):
+  File "get_meta.py", line 58, in parse_html
+    html = await self.get_page(browser, url)
+  File "get_meta.py", line 50, in get_page
+    await page.goto(url, timeout = 100000)
+  File "/home/lavanya/worldnews/worldnews/lib/python3.7/site-packages/pyppeteer/page.py", line 862, in goto
+    raise error
+pyppeteer.errors.TimeoutError: Navigation Timeout Exceeded: 100000 ms exceeded.
+Traceback (most recent call last):
+  File "get_meta.py", line 58, in parse_html
+    html = await self.get_page(browser, url)
+  File "get_meta.py", line 50, in get_page
+    await page.goto(url, timeout = 100000)
+  File "/home/lavanya/worldnews/worldnews/lib/python3.7/site-packages/pyppeteer/page.py", line 862, in goto
+    raise error
+pyppeteer.errors.TimeoutError: Navigation Timeout Exceeded: 100000 ms exceeded.
