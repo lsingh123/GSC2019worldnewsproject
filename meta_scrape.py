@@ -47,7 +47,6 @@ class MetadataParser():
         with open(self.infile, 'r') as f:
             reader = csv.reader(f, delimiter=',')
             for line in reader:
-                if len(self.urls) > 8000: break
                 self.urls.append("http://" + "".join(line[1]))
         print("DONE READING")
 
