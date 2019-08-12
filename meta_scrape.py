@@ -7,6 +7,7 @@ Created on Thu Aug  1 10:19:18 2019
 """
 
 from requests import Session
+import requests
 from lxml import etree
 from urllib import parse
 import concurrent.futures
@@ -74,6 +75,10 @@ class MetadataParser():
             return webfile
         except exceptions.ConnectionError as e:
             return str(e)
+        except requests.exceptions.ChunkedEncodingError as e:
+            return str(e)
+        except Exception as e:
+            return str(e)
 
     # get open graph data for a given attribute (title, locale, description)
     def get_og(self, tree, attribute):
@@ -128,7 +133,7 @@ class MetadataParser():
         return self._parse_url(url)
 
     def write_meta(self, results):
-        with open(self.outfile, 'w') as outf:
+        with open(self.outfile, 'a') as outf:
             w = csv.writer(outf, delimiter=',', quotechar='"',
                            quoting=csv.QUOTE_MINIMAL)
             for url in results:
@@ -139,10 +144,14 @@ class MetadataParser():
         time1 = time.time()
         results = []
         with concurrent.futures.ThreadPoolExecutor(max_workers=self.processes) as executor:
-            results = executor.map(self.parse_url, self.urls)
-        time2 = time.time()
+            for i in range(len(self.urls)):
+                time1 = time.time()
+                urls = self.urls[i*1000:(i+1)*1000]
+                results = executor.map(self.parse_url, urls)
+                self.write_meta(results)
+                time2 = time.time()
+                print(f"Took {time2-time1:.2f} seconds")
         self.write_meta(results)
-        print(f"Took {time2-time1:.2f} seconds")
         self.session.close()
         return results
 
