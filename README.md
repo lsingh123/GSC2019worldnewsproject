@@ -35,10 +35,42 @@ Scripts starting with `fuseki` are used to prepare and load data into an Apache
 Jena triplestore. `fuseki_feed.py` is the only script that you'll need to run.
 `fuseki_graph_spec.py` contains a helper class used to build the graph spec.
 
+`fuseki_feed.py -h` will output instructions for running the script from the
+command line.
+
+```
+$ python fuseki_feed.py -h
+usage: fuseki_feed.py [-h] [-inf [INFILE]] [-url URL]
+                      [-g [{overwrite,no_overwrite,first_load}]]
+
+Feed data into fuseki database
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -inf [INFILE], --infile [INFILE]
+                        csv file to read URLs in from
+
+required named arguments:
+  -url URL              database endpoint
+  -g [{overwrite,no_overwrite,first_load}], --graph_spec [{overwrite,no_overwrite,first_load}]
+                        graph spec function to use. see fuseki_graph_spec.py
+                        for the different functions. "overwrite" overwrites
+                        existing metadata. "no_overwrite" respects existing
+                        metadata. "first_load" assumes an empty datastore.
+```
+
 For more information on querying and updating the database, please
 see: https://docs.google.com/document/d/1rY32moyAVndtINysWYF5c5rhRtSX6OyTH5rkGc6vzoQ
 
 ## Metadata
 
 Scripts starting with `meta` are used for metadata collection and processing
-after the fact.
+after the fact. `meta_scrape.py` uses Kenji's cluster of headless browsers to
+scrape and parse the HTML for each news source to identify metadata.
+
+## Visualizations
+
+Scripts in `/visualizations` use matplotlib to make visualizations of the data.
+`make_venn.py` makes venn diagrams of the overlapping URLs from certain different
+metasources. `viz_metasources.py` creates a bar chart of the number of URLs from
+each metasource. 

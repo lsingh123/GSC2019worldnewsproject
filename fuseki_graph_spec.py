@@ -6,12 +6,8 @@ Created on Wed Jul 31 16:00:58 2019
 @author: lavanyasingh
 """
 
-import os
-from prefixes import prefixes
 import helpers
 import urllib.parse
-import json
-import csv
 
 class graphGenerator():
     
@@ -339,12 +335,11 @@ class graphGenerator():
         # add wikipedia link
         if not helpers.is_bad(source[12]):
             q += """;
-                wnp:wikipedia-page \'""" + urllib.parse.quote(source[12]) 
-                + """\'"""
+                wnp:wikipedia-page \'""" + urllib.parse.quote(source[12]) + """\'"""
 
         # add paths
         if not helpers.is_bad(source[13]):
-            q += get_path_spec(source[13])
+            q += self.get_path_spec(source[13])
         q += """.}
             """  
         return q

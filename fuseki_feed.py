@@ -9,19 +9,19 @@ Created on Wed Jun 19 11:28:34 2019
 from prefixes import prefixes
 import helpers
 import csv
-from graph_spec import graphGenerator
+from fuseki_graph_spec import graphGenerator
+import argparse
         
 
 class Feeder:
 
-    ENDPOINT = 'http://lavanya-dev.us.archive.org:3030/testwn/update'
-
     # graph spec_maker should be a function that returns a graph spec
     # from the graphGenerator class defined in graph_spec.py
-    def __init__(self, graph_spec_maker, infile):
+    def __init__(self, graph_spec_maker, infile, url):
         self.write_metasources()
         self.get_graph_spec = graph_spec_maker
         self.infile = infile
+        self.endpoint = url
 
     def write_metasources(self):
         query = prefixes + """
@@ -47,7 +47,7 @@ class Feeder:
             wni:commoncrawl wdt:P1448 "Common Crawl".
             wni:lion wdt:P1448 "LION Publishers".}
         } """
-        helpers.send_query(self.ENDPOINT, query)
+        helpers.send_query(self.endpoint, query)
         print('successfully wrote meta sources')
 
     #takes in a list of CSV rows
@@ -66,7 +66,7 @@ class Feeder:
                 q = ''
                 # break for bad queries
                 try:
-                    helpers.send_query(self.ENDPOINT, query)
+                    helpers.send_query(self.endpoint, query)
                 except:
                     with open('data/logfile', 'w') as f:
                         f.write(query)
@@ -86,10 +86,37 @@ class Feeder:
         print("DONE")
         return sources
 
+# create argument parser
+def create_parser():
+    argp = argparse.ArgumentParser(
+            description='Feed data into fuseki database')
+    argp.add_argument('-inf', '--infile', nargs='?',
+                      default='data/all_working.csv', type=str,
+                      help='csv file to read URLs in from')
+    requiredNamed = argp.add_argument_group('required named arguments')
+    requiredNamed.add_argument('-url', default='http://lavanya-dev.us.archive.org:3030/testwn/update', type=str,
+                      help='database endpoint')
+    requiredNamed.add_argument('-g', '--graph_spec', nargs='?', 
+                      choices = ['overwrite', 'no_overwrite', 'first_load'],
+                      default='no_overwrite', type=str,
+                      help='''graph spec function to use. see fuseki_graph_spec.py for the different functions. 
+                      "overwrite" overwrites existing metadata. 
+                      "no_overwrite" respects existing metadata.
+                      "first_load" assumes an empty datastore.''')
+    return argp
+
 
 if __name__ == '__main__':
+    argp = create_parser()
+    args = argp.parse_args()
     generator = graphGenerator()
-    graph_spec = generator.no_overwrite()
-    feeder = Feeder(graph_spec, "data/all_raw_cleaned.csv")
+    graph = args.graph_spec
+    if graph == 'no_overwrite':
+        graph_spec = generator.no_overwrite
+    elif graph == 'overwrite':
+        graph_spec = generator.overwrite
+    elif graph == 'first_load':
+        graph_spec = generator.first_load
+    feeder = Feeder(graph_spec_maker=graph_spec, infile=args.infile, url=args.url)
     sources = feeder.read_in()
     feeder.dump_all(sources)
