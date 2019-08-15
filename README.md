@@ -2,7 +2,7 @@
 
 Code developed for the World News Project during Google Summer of Code 2019.
 *Note: This repository contains operationalized code to be used as a long term
-resource. For old/exploratory scripts, please see: https://github.com/lsingh123/GSC2019internet_archive*
+resource. For old/exploratory scripts, please see: https://github.com/lsingh123/internet_archive_old*
 
 ## Helpers
 
