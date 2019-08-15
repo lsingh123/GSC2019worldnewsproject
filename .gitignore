@@ -1,1 +1,6 @@
 worldnews_env
+*.pyc
+__pycache__/*
+data/all_raw.csv
+data/all_raw_cleaned_old.csv
+

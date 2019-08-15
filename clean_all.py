@@ -6,24 +6,18 @@ Created on Wed Jul 10 14:36:04 2019
 @author: lavanyasingh
 """
 
-import os
 import urllib.parse
 import csv
 import helpers
 
 class Truncator():
     
-    def __init__(self, outfile):
+    def __init__(self, outfile="data/all_raw_cleaned2.csv"):
         self.outfile = outfile
     
-    def clean_meta(selfm, meta):
+    def clean_meta(self, meta):
         # cleans metasource name
         return meta.lower().replace(" ", "").strip()
-    
-    def clean_url(self, url):
-        url_raw = helpers.truncate(url)
-        o = urllib.parse.urlparse('http://www.' + url_raw)
-        return o.netloc
     
     def prep_url(self, url):
         # strip schema and www. from a given URL
@@ -59,19 +53,20 @@ class Truncator():
             return True
         
     #outputs a dict of url: CSV rows
-    def make_all_data(self, fpaths):
+    def make_all_data(self, infile):
         rows = {}
-        for fpath in fpaths:
-            with open('data/raw/' + fpath, 'r') as inf:
+        with open('data/' + infile, 'r') as inf:
                 reader = csv.reader(inf, delimiter=',')
                 for line in reader:
-                    
+
                     # clean URL
-                    url = self.clean_url(line[1])
+                    url = helpers.truncate(line[1])
                     line[1] = url
+                    if len(rows) % 5000 == 0: print(url)
+
                     
                     # get path ('/money' or '/index' for example)
-                    o = urllib.parse.urlparse(self.prep_url(line))
+                    o = urllib.parse.urlparse(self.prep_url(line[1]))
                     path = o.path
                     
                     # add metasource
@@ -110,7 +105,6 @@ class Truncator():
                         if self.path_is_good(path):
                             rows[url][13].append(path)
                             
-            print("DONE WITH", path)
         return rows
                                    
     def write_all_data(self, rows):
@@ -131,7 +125,6 @@ class Truncator():
     
         
 if __name__ == "__main__":
-    truncator = Truncator(outfile)
-    fpaths = os.listdir('data/')
-    rows = truncator.make_all_data(fpaths)
+    truncator = Truncator()
+    rows = truncator.make_all_data("all_raw.csv")
     truncator.write_all_data(rows)

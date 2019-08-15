@@ -22,6 +22,7 @@ import urllib
 # clean a url to be truncated or for domain extraction
 def clean_url(url):
     url = url.replace("www.", "")
+    url = url.strip(".").strip("/")
     stream = re.finditer('%', url)
     try:
         url = url[:next(stream).span()[0]]
@@ -37,9 +38,6 @@ def truncate(url):
         url = url[next(stream).span()[1]:]
     except StopIteration:
         url = url
-    www = url.find('www.')
-    if www != -1:
-        url = url[www+4:]
     if url.find('subject=') != -1:
         return ''
     url = clean_url(url)

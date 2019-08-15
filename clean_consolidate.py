@@ -86,6 +86,28 @@ class consolidator():
                     w.writerow(row)
         print ("DONE WITH ", path)
     
+    def dmoz(self):
+        with open("data/dmoz.txt", "r") as inf, open(self.outfile, 'a+') as outf:
+            reader = csv.reader(inf, delimiter='\t')
+            w = csv.writer(outf, delimiter= ',', quotechar = '"', quoting = 
+                               csv.QUOTE_MINIMAL)
+            for line in reader:
+                row = ["" for i in range(13)]
+                row[1] = line[1]
+                row[7] = "DMOZ"
+                w.writerow(row)
+                
+    def common_crawl(self):
+        with open("data/common_crawl.txt", "r") as inf, open(self.outfile, 'a+') as outf:
+            reader = csv.reader(inf, delimiter='\t')
+            w = csv.writer(outf, delimiter= ',', quotechar = '"', quoting = 
+                               csv.QUOTE_MINIMAL)
+            for line in reader:
+                row = ["" for i in range(13)]
+                row[1] = line[1]
+                row[7] = "Common Crawl"
+                w.writerow(row)
+    
     def main(self):
         self.us_news()
         self.usnpl()
@@ -102,5 +124,5 @@ class consolidator():
         
 if __name__ == '__main__':
     consolidator = consolidator()
-    consolidator.main()
+    consolidator.common_crawl()
     
