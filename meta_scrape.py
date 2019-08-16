@@ -25,8 +25,8 @@ from requests import exceptions
 class MetadataParser():
 
     # optimal number of processes from `meta_test.py`
-    def __init__(self, processes, retries=1, infile='data/all_raw_cleaned.csv', 
-                 outfile='data/metadata.csv',):
+    def __init__(self, processes=10, retries=1, infile='data/all_raw_cleaned.csv', 
+                 outfile='data/metadata.csv', in_urls=None):
 
         self.infile, self.outfile = infile, outfile
         self.processes, self.retries = processes, retries
@@ -40,8 +40,11 @@ class MetadataParser():
         self.parser = etree.HTMLParser()
 
         # read in URLs
-        self.urls = []
-        self.read_in()
+        if in_urls is None:
+            self.urls = []
+            self.read_in()
+        else:
+            self.urls = in_urls
 
     # read in cleaned URLs from CSV
     def read_in(self):
@@ -117,8 +120,9 @@ class MetadataParser():
         return desc
 
     # scrape and parse a given URL
-    def _parse_url(self, url):
-        html = self.load_url(url)
+    def parse_url(self, url, html=None):
+        if html is None: 
+            html = self.load_url(url)
         tree = etree.fromstring(html, self.parser)
         title = self.get_title(tree)
         desc = self.get_description(tree)
@@ -128,9 +132,6 @@ class MetadataParser():
             return [url, html]
         # replace none values with the empty string
         return ["" if res is None else res for res in results]
-
-    def parse_url(self, url):
-        return self._parse_url(url)
 
     def write_meta(self, results):
         with open(self.outfile, 'a') as outf:
@@ -161,7 +162,7 @@ def create_parser():
     argp = argparse.ArgumentParser(
             description='Scrape metadata from `all_raw_cleaned.csv')
     argp.add_argument('-p', '--processes', nargs='?', default=10, type=int,
-                            help='number of workers to use. defaults to 15.')
+                            help='number of workers to use. defaults to 10.')
     argp.add_argument('-inf', '--infile', nargs='?',
                       default='data/all_raw_cleaned.csv', type=str,
                       help='csv file to read URLs in from')

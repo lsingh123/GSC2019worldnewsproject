@@ -7,6 +7,7 @@ Created on Mon Aug 12 14:14:32 2019
 """
 
 import csv
+import sys
 
 def get_sources(infile="data/all_raw_cleaned.csv"):
     sources = []
@@ -28,5 +29,23 @@ def read_urls(infile="data/urls.txt"):
     print(len(not_found))
     print(not_found)
 
-read_urls()
+def get_meta(infile="data/metadata.csv"):
+    bad, html = [], []
+    csv.field_size_limit(sys.maxsize)
+    with open(infile, "r", errors = "ignore") as f:
+        reader = csv.reader(f, delimiter = ",")
+        for line in reader:
+            total += 1
+            if len(line) > 3:
+                count += 1
+            elif str(line[1]).find("upstream request timeout") != -1:
+                bad.append(line)
+            elif str(line[1]).find("HTTP Connection Pool") != -1:
+                bad.append(line)
+            elif str(line[1]).find("html") != -1:
+                html.append(line)
+    print(total, count)
+    return bad, html
+
+bad, html = get_meta()
         
