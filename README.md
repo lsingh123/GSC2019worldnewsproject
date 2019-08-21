@@ -4,6 +4,12 @@ Code developed for the World News Project during Google Summer of Code 2019.
 *Note: This repository contains operationalized code to be used as a long term
 resource. For old/exploratory scripts, please see: https://github.com/lsingh123/internet_archive_old*
 
+## Conventions
+
+- deduplication occurred on the top-level private domain as produced by `helpers.truncate(url)`
+- data is stored in a CSV with the following columns: `['country', 'url', 'title', 'language', 'type', 'title native language', 'paywall', 'metasource', 'state', 'town', 'wikipedia name', 'redirects?', 'wikipedia link']` 
+- the jena fuseki triple store has one graph for each news source
+
 ## Helpers
 
 `helpers.py` contains helper functions and conventions for storing data in
@@ -74,3 +80,7 @@ Scripts in `/visualizations` use matplotlib to make visualizations of the data.
 `make_venn.py` makes venn diagrams of the overlapping URLs from certain different
 metasources. `viz_metasources.py` creates a bar chart of the number of URLs from
 each metasource. 
+
+## Contact
+
+`lsingh@college.harvard.edu`
