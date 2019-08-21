@@ -8,6 +8,7 @@ Created on Wed Jul 31 16:00:58 2019
 
 import helpers
 import urllib.parse
+from fuzzywuzzy import process
 
 class graphGenerator():
     
@@ -16,11 +17,29 @@ class graphGenerator():
     
      # takes a raw country name and returns wikidata country code if it exists
     def get_country_code(self, name):
+        name = helpers.strip_spaces(name).lower()
+        
+        # convert names from one form to another
+        conversions = {"america":"unitedstatesofamerica", "unitedstates":
+            "unitedstatesofamerica", "usa":"unitedstatesofamerica", "us":
+            "unitedstatesofamerica", "russianfederation":"russia",
+            "laopdr":"laos", "laopeople'sdemocraticrepublic":"laos", 
+            "côted'ivoire":"ivorycoast", "czechia":"czechrepublic", "caboverde":
+            "capeverde", "timor-leste":"easttimor", "uae":"unitedarabemirates", 
+            "macao":"macau"}
+        if name.find("taiwan") != -1:
+            name = "taiwan"
+        if name in conversions:
+            name = conversions[name]
         try:
-            return 'wd:'+ self.countries[helpers.strip_spaces(name).lower()]
+            return 'wd:'+ self.countries[name]
         except KeyError as e:
-            return("\'TODO\'")
-            print(e)
+            p = process.extractOne(name, list(self.countries.keys()))
+            if p[1] > 85:
+                key = p[0]
+                return 'wd:' + self.countries[key]
+            print(name)
+            return None
     
     # returns a triple for each path given ('/index' for example)
     def get_path_spec(self, paths):
@@ -56,7 +75,7 @@ class graphGenerator():
         q += ("DELETE" + match + """
               INSERT { """ + graph + " {" + url_item + " wdt:P1896 """ 
                                         + url + """ }} 
-              WHERE """ + match + ";" )
+              WHERE {} ;""" )
         
         # add country
         if not helpers.is_bad(source[0]):
@@ -68,94 +87,99 @@ class graphGenerator():
             match = "{" + graph + "{ ?item wdt:P17 ?country}}"
             q += ("DELETE" + match + """
               INSERT { """ + graph + " {" + url_item + " wdt:P17 " + c + """ }} 
-              WHERE """ + match + ";" )
+              WHERE {} ;""" )
 
         # add title
         if not helpers.is_bad(source[2]):
             match = "{" + graph + "{ ?item wdt:P1448 ?title}}"
             q += ("DELETE" + match + """
               INSERT { """ + graph + " {" + url_item + " wdt:P1448 \'" 
-                                        + helpers.clean(source[2]) + """\' }} 
-              WHERE """ + match + ";" )
+                                        + helpers.clean_string(source[2]) + """\' }} 
+             WHERE {} ;""" )
 
         # add language
         if not helpers.is_bad(source[3]):
             match = "{" + graph + "{ ?item wdt:P37 ?lang}}"
             q += ("DELETE" + match + """
               INSERT { """ + graph + " {" + url_item + " wdt:P37 \'" 
-                                        + helpers.clean(source[3]) + """\' }} 
-              WHERE """ + match + ";" )
+                                        + helpers.clean_string(source[3]) + """\' }} 
+              WHERE {} ;""" )
 
         # add type
         if not helpers.is_bad(source[4]):
             match = "{" + graph + "{ ?item wdt:P31 ?type}}"
             q += ("DELETE" + match + """
               INSERT { """ + graph + " {" + url_item + " wdt:P31 \'" 
-                                        + helpers.clean(source[4]) + """\' }} 
-              WHERE """ + match + ";" )
+                                        + helpers.clean_string(source[4]) + """\' }} 
+              WHERE {} ;""" )
 
         # add title (native language)
         if not helpers.is_bad(source[5]):
             match = "{" + graph + "{ ?item wdt:P1704 ?title}}"
             q += ("DELETE" + match + """
-              INSERT { """ + graph + " {" + url_item + " wdt:P1704 \'" + helpers.clean(source[5]) + """\'}} 
-              WHERE """ + match + ";" )
+              INSERT { """ + graph + " {" + url_item + " wdt:P1704 \'" + 
+                                        helpers.clean_string(source[5]) + """\'}} 
+              WHERE {} ;""" )
 
         # add paywall
         if not helpers.is_bad(source[6]):
             match = "{" + graph + "{ ?item wnp:paywalled ?pw}}"
             q += ("DELETE" + match + """
               INSERT { """ + graph + " {" + url_item + " wnp:paywalled \'" 
-                                        + helpers.clean(source[2]) + """\' }} 
-              WHERE """ + match + ";" )
+                                        + helpers.clean_string(source[2]) + """\' }} 
+              WHERE {} ;""" )
 
-        # add metasource
-        if not helpers.is_bad(source[7]):
-            match = "{" + graph + "{ ?item wnp:metasource ?ms}}"
-            q += ("DELETE" + match + """
-              INSERT { """ + graph + " {" + url_item + " wnp:metasource wni:" + 
-              helpers.strip_spaces(source[7]).lower() + """ }} 
-              WHERE """ + match + ";" )
+        # add metasources
+        for ms in source[7]:
+            if not helpers.is_bad(ms):
+                match = "{" + graph + "{ ?item wnp:metasource ?ms}}"
+                q += ("DELETE" + match + """
+                  INSERT { """ + graph + " {" + url_item + " wnp:metasource wni:" + 
+                  helpers.strip_spaces(ms).lower() + """ }} 
+                  WHERE {} ;""" )
 
         # add state
         if not helpers.is_bad(source[8]):
             match = "{" + graph + "{ ?item wdt:P131 ?state}}"
             q += ("DELETE" + match + """
               INSERT { """ + graph + " {" + url_item + " wdt:P131 \'" 
-                                        + helpers.clean(source[8]) + """\' }} 
-              WHERE """ + match + ";" )
+                                        + helpers.clean_string(source[8]) + """\' }} 
+              WHERE {} ;""" )
 
         # add wikipedia name
         if not helpers.is_bad(source[10]):
             match = "{" + graph + "{ ?item wnp:wikipedia-name ?wp_name}}"
             q += ("DELETE" + match + """
               INSERT { """ + graph + " {" + url_item + " wnp:wikipedia-name \'" 
-                                        + helpers.clean(source[10]) + """\' }} 
-              WHERE """ + match + ";" )
+                                        + helpers.clean_string(source[10]) + """\' }} 
+              WHERE {} ;""" )
 
         # add redirects?
         if not helpers.is_bad(source[11]):
             match = "{" + graph + "{ ?item wnp:redirect ?rd}}"
             q += ("DELETE" + match + """
               INSERT { """ + graph + " {" + url_item + " wnp:redirect \'" 
-                                        + helpers.clean(source[11]) + """\' }} 
-              WHERE """ + match + ";" )
+                                        + helpers.clean_string(source[11]) + """\' }} 
+              WHERE {} ;""" )
 
         # add wikipedia link
         if not helpers.is_bad(source[12]):
             match = "{" + graph + "{ ?item wnp:wikipedia-page ?wp_page}}"
             q += ("DELETE" + match + """
               INSERT { """ + graph + " {" + url_item + " wnp:wikipedia-page \'" 
-                                        + helpers.clean(source[12]) + """\' }} 
-              WHERE """ + match + ";" )
+                                        + helpers.clean_string(source[12]) + """\' }} 
+              WHERE {} ;""" )
             
         # add description
-        if not helpers.is_bad(source[14]):
-            match = "{" + graph + "{ ?item wnp:description ?desc}}"
-            q += ("DELETE" + match + """
-              INSERT { """ + graph + " {" + url_item + " wnp:description \'" 
-                                        + helpers.clean(source[14]) + """\' }} 
-              WHERE """ + match + ";" )
+        try:
+            if not helpers.is_bad(source[14]):
+                match = "{" + graph + "{ ?item wnp:description ?desc}}"
+                q += ("DELETE" + match + """
+                  INSERT { """ + graph + " {" + url_item + " wnp:description \'" 
+                                            + helpers.clean_string(source[14]) + """\' }} 
+                  WHERE {} ;""" )
+        except IndexError:
+            None
         
         return q
     
@@ -290,7 +314,7 @@ class graphGenerator():
             country_code = self.get_country_code(source[0])
             if not helpers.is_bad(country_code):
                 q += """;
-                wdt:P17 """ + country_code + """ """
+                wdt:P17 """ + country_code 
             else:
                 q += """;
                 wdt:P17 \'""" + helpers.clean_string(source[0]) + """\' """
@@ -361,3 +385,4 @@ class graphGenerator():
         q += """.}"""  
                 
         return q 
+

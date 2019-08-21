@@ -3,4 +3,5 @@ worldnews_env
 __pycache__/*
 data/all_raw.csv
 data/all_raw_cleaned_old.csv
-
+.DS_Store
+visualizations/.DS_Store

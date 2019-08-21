@@ -17,11 +17,12 @@ class Feeder:
 
     # graph spec_maker should be a function that returns a graph spec
     # from the graphGenerator class defined in graph_spec.py
-    def __init__(self, graph_spec_maker, infile, url):
+    def __init__(self, graph_spec_maker, infile, url, overwrite=False):
         self.get_graph_spec = graph_spec_maker
         self.infile = infile
         self.endpoint = url
         self.write_metasources()
+        self.overwrite=overwrite
 
     def write_metasources(self):
         query = prefixes + """
@@ -56,23 +57,38 @@ class Feeder:
         q = ''
         for source in sources:
             s = self.get_graph_spec(source)
-            counter += 1
             q  += s
             if counter % 1000 == 0:
-                print("DUMPED {counter} SOURCES".format(counter=counter))
-                query = prefixes + """
-                INSERT DATA {
-                """ + q + """} """
-                q = ''
-                # break for bad queries
                 try:
-                    helpers.send_query(self.endpoint, query)
-                except:
+                    query = self.dump(q)
+                except Exception as e:
                     with open('data/logfile', 'w') as f:
                         f.write(query)
-                        print("BAD QUERY")
+                        print(e)
                     break
-        print("DONE")
+                q = ''
+                print("DUMPED {counter} SOURCES".format(counter=counter))
+            counter += 1
+        try:
+            query = self.dump(q)
+        except Exception as e:
+            with open('data/logfile', 'w') as f:
+                f.write(q)
+            print(e)
+        print("DONE DUMPING {counter} SOURCES".format(counter=counter))
+    
+    def dump(self, q):
+        if not self.overwrite:
+            query = prefixes + """
+                    INSERT DATA {
+                    """ + q + """} """
+        else:
+            query = prefixes + q
+        # break for bad queries
+        try:
+            helpers.send_query(self.endpoint, query)
+        finally:
+            return query
 
     def read_in(self):
         sources = []
@@ -117,6 +133,7 @@ if __name__ == '__main__':
         graph_spec = generator.overwrite
     elif graph == 'first_load':
         graph_spec = generator.first_load
-    feeder = Feeder(graph_spec_maker=graph_spec, infile=args.infile, url=args.url)
+    feeder = Feeder(graph_spec_maker=graph_spec, infile=args.infile, url=args.url, 
+                    overwrite=(graph=="overwrite"))
     sources = feeder.read_in()
     feeder.dump_all(sources)

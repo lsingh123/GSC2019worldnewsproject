@@ -58,7 +58,8 @@ def is_bad(entry):
     if type(entry) == str: entry = entry.strip(' ')
     b = (entry == "TODO" or entry == 'None' or entry == 'none' or entry == '' 
          or entry == 'na' or entry == 'NA' or entry == 'todo' or 
-         entry == 'Todo' or entry == [] or entry == "[]" or entry == [''])
+         entry == 'Todo' or entry == [] or entry == "[]" or entry == [''] or 
+         entry is None)
     return b
 
 #takes list of dicts in url:row format and returns a list of rows
@@ -85,6 +86,16 @@ def get_countries():
       {?item wdt:P31 wd:Q3624078} UNION
       {?item wdt:P31 wd:Q33837} UNION
       {?item wdt:P31 wd:Q27561} UNION
+      {?item wdt:P31 wd:Q112099} UNION
+      {?item wdt:P31 wd:Q5164076} UNION
+      {?item wdt:P31 wd:Q3373417} UNION
+      {?item wdt:P31 wd:Q15634554} UNION
+      {?item wdt:P31 wd:Q783733} UNION
+      {?item wdt:P31 wd:Q779415} UNION
+      {?item wdt:P31 wd:Q46395} UNION
+      {?item wdt:P31 wd:Q36784} UNION
+      {?item wdt:P31 wd:Q14773} UNION
+      {?item wdt:P31 wd:Q46395} UNION
       {?item wdt:P31 wd:Q82794}.
       SERVICE wikibase:label  { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
     } """
@@ -112,3 +123,4 @@ def read_in(path):
         for line in reader:
             sources.append(line)
     return sources
+
