@@ -115,7 +115,10 @@ def create_parser():
     requiredNamed.add_argument('-g', '--graph_spec', nargs='?', 
                       choices = ['overwrite', 'no_overwrite', 'first_load'],
                       default='no_overwrite', type=str,
-                      help='''graph spec function to use. see fuseki_graph_spec.py for the different functions. 
+                      help='''graph spec function to use. MAKE SURE THAT THE URLS
+                      YOU ARE LOADING IN ARE IN CANONICALIZED FORM AS PRODUCED BY 
+                      HELPERS.TRUNCATE(). see fuseki_graph_spec.py for the 
+                      different functions. 
                       "overwrite" overwrites existing metadata. 
                       "no_overwrite" respects existing metadata.
                       "first_load" assumes an empty datastore.''')
