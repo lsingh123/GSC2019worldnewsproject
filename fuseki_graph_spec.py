@@ -66,7 +66,7 @@ class graphGenerator():
             return q
         
         # add url to graph
-        url = '<http://' + urllib.parse.quote(source[1]) + '>'
+        url = '<http://' + urllib.parse.quote(source[1].replace("http://", "").replace("https://", "")) + '>'
         url_item = '<http://' + urllib.parse.quote(source[1]) + '/item>' 
         graph = """ GRAPH """ + url 
     
