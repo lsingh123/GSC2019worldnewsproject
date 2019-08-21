@@ -23,11 +23,11 @@ class graphGenerator():
             print(e)
     
     # returns a triple for each path given ('/index' for example)
-    def get_path_spec(paths):
+    def get_path_spec(self, paths):
         q = ''
         for path in paths:
             q += """;
-                wnp:haspath \'""" + helpers.clean(path) + "\'"
+                wnp:haspath \'""" + helpers.clean_string(path) + "\'"
         return q
 
     # returns a triple for each metasource given
@@ -54,8 +54,8 @@ class graphGenerator():
         # add url
         match = "{" + graph + "{ ?item wdt:P1896 ?url}}"
         q += ("DELETE" + match + """
-              INSERT { """ + graph + " {" + url_item + " wdt:P1896 \'""" 
-                                + urllib.parse.quote(source[1]) + """\' }} 
+              INSERT { """ + graph + " {" + url_item + " wdt:P1896 """ 
+                                        + url + """ }} 
               WHERE """ + match + ";" )
         
         # add country
@@ -148,7 +148,15 @@ class graphGenerator():
               INSERT { """ + graph + " {" + url_item + " wnp:wikipedia-page \'" 
                                         + helpers.clean(source[12]) + """\' }} 
               WHERE """ + match + ";" )
-        if source[1] == 'timesofsandiego.com': print(q)
+            
+        # add description
+        if not helpers.is_bad(source[14]):
+            match = "{" + graph + "{ ?item wnp:description ?desc}}"
+            q += ("DELETE" + match + """
+              INSERT { """ + graph + " {" + url_item + " wnp:description \'" 
+                                        + helpers.clean(source[14]) + """\' }} 
+              WHERE """ + match + ";" )
+        
         return q
     
     def no_overwrite(self, source):
@@ -168,8 +176,7 @@ class graphGenerator():
         graph = """ GRAPH """ + url 
         
         # add URL
-        q += ("INSERT { " + graph + " {" + item + " wdt:P1896 \'" + 
-                urllib.parse.quote(source[1]) + """\' }} 
+        q += ("INSERT { " + graph + " {" + item + " wdt:P1896 " + url + """ }} 
                 WHERE {FILTER (NOT EXISTS {""" + graph + 
                 "{ ?item wdt:P1896 ?url}})} ;" )
         
@@ -256,6 +263,13 @@ class graphGenerator():
             WHERE {FILTER (NOT EXISTS {""" + graph 
                                 + "{ ?item wnp:wikipedia-page ?wp_page}})} ;" )
         
+        # add description
+        if not helpers.is_bad(source[14]):
+            q += (" INSERT { " + graph + " {" + item + " wnp:description \'" 
+                                        + helpers.clean(source[14]) + """\' }}
+            WHERE {FILTER (NOT EXISTS {""" + graph 
+                                + "{ ?item wnp:description ?desc}})} ;" )
+        
         return q
 
     # takes in a CSV row as source
@@ -269,8 +283,7 @@ class graphGenerator():
         url = '<http://' + urllib.parse.quote(source[1]) + '>'
         url_item = '<http://' + urllib.parse.quote(source[1]) + '/item>' 
         q = """GRAPH """ + url + """ { 
-        """ + url_item + """ wdt:P1896 \'""" + urllib.parse.quote(source[1]) 
-        + """\'"""
+        """ + url_item + """ wdt:P1896 """ + url
         
         # add country
         if not helpers.is_bad(source[0]):
@@ -280,57 +293,56 @@ class graphGenerator():
                 wdt:P17 """ + country_code + """ """
             else:
                 q += """;
-                wdt:P17 \'""" + helpers.clean(source[0]) + """\' """
+                wdt:P17 \'""" + helpers.clean_string(source[0]) + """\' """
             
-        # add titletitle
+        # add title
         if not helpers.is_bad(source[2]):
             q += """;
-                wdt:P1448 \'""" + helpers.clean(source[2]) + """\' """
+                wdt:P1448 \'""" + helpers.clean_string(source[2]) + """\' """
 
         # add language
         if not helpers.is_bad(source[3]):
             q += """;
-                wdt:P37 \'""" + helpers.clean(source[3]) + """\' """
+                wdt:P37 \'""" + helpers.clean_string(source[3]) + """\' """
 
         #add type
         if not helpers.is_bad(source[4]):
             q += """;
-                wdt:P31 \'""" + helpers.clean(source[4]) + """\' """
+                wdt:P31 \'""" + helpers.clean_string(source[4]) + """\' """
 
         #add title (native language)
         if not helpers.is_bad(source[5]):
             q += """;
-                wdt:P1704 \'""" + helpers.clean(source[5]) + """\' """    
+                wdt:P1704 \'""" + helpers.clean_string(source[5]) + """\' """    
 
         # add paywall
         if not helpers.is_bad(source[6]):
             q += """;
-                wnp:paywalled \'""" + helpers.clean(source[6]) + """\' """
+                wnp:paywalled \'""" + helpers.clean_string(source[6]) + """\' """
 
         # add metasources
         if not helpers.is_bad(source[7]):
-            q += self.get_ms_spec(source[7])
+            q += self.get_ms(source[7])
 
         # add state
         if not helpers.is_bad(source[8]):
             q += """;
-                wdt:P131 \'""" + helpers.clean(source[8]) + """\' """
+                wdt:P131 \'""" + helpers.clean_string(source[8]) + """\' """
 
         # add town
         if not helpers.is_bad(source[9]):
             q += """;
-                wdt:P131 \'""" + helpers.clean(source[9]) + """\' """
+                wdt:P131 \'""" + helpers.clean_string(source[9]) + """\' """
 
         # add wikipedia name
         if not helpers.is_bad(source[10]):
             q += """;
-                wnp:wikipedia-name \'""" + helpers.clean(source[10]) 
-            + """\' """
+                wnp:wikipedia-name \'""" + helpers.clean_string(source[10]) + "\' "
 
         # add redirects?
         if not helpers.is_bad(source[11]):
             q += """;
-                wnp:redirect \'""" + helpers.clean(source[11]) + """\' """
+                wnp:redirect \'""" + helpers.clean_string(source[11]) + """\' """
 
         # add wikipedia link
         if not helpers.is_bad(source[12]):
@@ -340,6 +352,12 @@ class graphGenerator():
         # add paths
         if not helpers.is_bad(source[13]):
             q += self.get_path_spec(source[13])
-        q += """.}
-            """  
-        return q
+          
+        # add description
+        if not helpers.is_bad(source[14]):
+            q += """;
+                wnp:description \'""" + helpers.clean_string(source[14]) + "\'"
+        
+        q += """.}"""  
+                
+        return q 

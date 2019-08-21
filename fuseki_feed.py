@@ -18,10 +18,10 @@ class Feeder:
     # graph spec_maker should be a function that returns a graph spec
     # from the graphGenerator class defined in graph_spec.py
     def __init__(self, graph_spec_maker, infile, url):
-        self.write_metasources()
         self.get_graph_spec = graph_spec_maker
         self.infile = infile
         self.endpoint = url
+        self.write_metasources()
 
     def write_metasources(self):
         query = prefixes + """
@@ -59,7 +59,7 @@ class Feeder:
             counter += 1
             q  += s
             if counter % 1000 == 0:
-                print(str(counter) + "\r")
+                print("DUMPED {counter} SOURCES".format(counter=counter))
                 query = prefixes + """
                 INSERT DATA {
                 """ + q + """} """
@@ -82,8 +82,8 @@ class Feeder:
                 line[7] = line[7].strip(" ").split(" ")
                 line[13] = line[13].strip(" ").split(" ")
                 sources.append(line)
-                print(str(len(sources)) + "\r")
-        print("DONE")
+                print("READING SOURCE {sources}".format(sources=len(sources)), end="\r")
+        print("\nDONE READING")
         return sources
 
 # create argument parser
@@ -91,10 +91,10 @@ def create_parser():
     argp = argparse.ArgumentParser(
             description='Feed data into fuseki database')
     argp.add_argument('-inf', '--infile', nargs='?',
-                      default='data/all_working.csv', type=str,
+                      default='data/all_metadata.csv', type=str,
                       help='csv file to read URLs in from')
     requiredNamed = argp.add_argument_group('required named arguments')
-    requiredNamed.add_argument('-url', default='http://lavanya-dev.us.archive.org:3030/testwn/update', type=str,
+    requiredNamed.add_argument('-url', default='http://wwwb-db01.us.archive.org:3030/wn/update', type=str,
                       help='database endpoint')
     requiredNamed.add_argument('-g', '--graph_spec', nargs='?', 
                       choices = ['overwrite', 'no_overwrite', 'first_load'],

@@ -15,7 +15,7 @@ import random
 class mapDataMaker():
     
     def __init__(self, countryfile = "data/countries.csv", 
-                 infile = "data/all_raw_cleaned1.csv",
+                 infile = "data/all_metadata2.csv",
                  outfile = "data/geodata.csv"):
         self.countryfile = countryfile
         self.infile, self.outfile = infile, outfile
@@ -97,10 +97,10 @@ def create_parser():
     argp = argparse.ArgumentParser(
             description='Prep country data for Tableau')
     argp.add_argument('-inf', '--infile', nargs='?',
-                      default='data/all_working.csv', type=str,
+                      default='data/all_metadata.csv', type=str,
                       help='csv file to read URLs in from')
     argp.add_argument('-outf', '--outfile', nargs='?',
-                      default='data/geodata2.csv', type=str,
+                      default='data/geodata3.csv', type=str,
                       help='csv file to write metadata to')
     argp.add_argument('-p', '--process', nargs='?', choices = ['geo', 'process'],
                       default='process', type=str,
