@@ -80,3 +80,7 @@ Scripts in `/visualizations` use matplotlib to make visualizations of the data.
 `make_venn.py` makes venn diagrams of the overlapping URLs from certain different
 metasources. `viz_metasources.py` creates a bar chart of the number of URLs from
 each metasource. 
+
+## Contact
+
+`lsingh@college.harvard.edu`
